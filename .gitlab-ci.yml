@@ -1,0 +1,38 @@
+include:
+- project: stig/inspec-scanning-integration
+  ref: 1.1.11
+  file: templates/templates.yml
+
+before_script:
+  - echo "SCV Pipeline for Apache Tomcat 9.X"
+
+stages:
+  - check
+  - lint
+  - exec
+  - publish
+
+check Apache_Tomcat_9.X:
+  extends: .ci:stage:check:inspec
+
+lint Apache_Tomcat_9.X:
+  extends: .ci:stage:lint:inspec
+
+exec Apache_Tomcat_9.X:
+  extends: .ci:stage:exec:inspec
+  variables:
+    TARGET: 'rep.dsolab.io/baselines/tomcat:1.0'
+
+publish Apache_Tomcat_9.X:
+  extends: .ci:stage:publish:inspec:artifacts
+  dependencies:
+  - check Apache_Tomcat_9.X
+  - lint Apache_Tomcat_9.X
+  - exec Apache_Tomcat_9.X
+
+sync:
+  extends: .ci:stage:publish:inspec:sync
+  variables:
+    SYNC_REPO: "repo1.dso.mil/disa/inspec/apache/tomcat_9.x.git"
+    SYNC_TOKEN: $IR1_TOMCAT_9
+
